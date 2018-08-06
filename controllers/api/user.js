@@ -5,6 +5,29 @@ var jwt = require('jsonwebtoken');
 var router = require('express').Router();
 var User = require('../../models/user');
 
+router.get('/me', passport.authenticate('jwt', {session: false}), function (req, res) {
+  var user = req.user;
+  return res.json({
+    username: user.username,
+    balance: user.balance,
+    card: user.card,
+  });  
+});
+
+router.put('/me', passport.authenticate('jwt', {session: false}), function (req, res) {
+  User.findOne({username: req.user.username}, function (err, user) {
+    user.password = req.body.password;
+    user.card = JSON.parse(req.body.card);
+
+    user.save(function (err) {
+      if (err) {
+        return res.json({success: false, msg: 'Can not update user data.'});
+      }
+      res.json({success: true, msg: 'Successfully updated user data.'});
+    });
+  });
+});
+
 router.post('/sign_up', function (req, res) {
   if (!req.body.username || !req.body.password) {
     res.json({success: false, msg: 'Please pass username and password.'});
@@ -21,10 +44,6 @@ router.post('/sign_up', function (req, res) {
       res.json({success: true, msg: 'Successfully created new user.'});
     });
   }
-});
-
-router.get('/me', passport.authenticate('jwt', {session: false}), function (req, res) {
-  return res.json({user: req.user.username});  
 });
 
 router.post('/sign_in', function (req, res) {

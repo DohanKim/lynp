@@ -46,7 +46,7 @@ var PrinterSchema = new Schema({
   },
 });
 
-PrinterSchema.pre('save', function (next) {
+PrinterSchema.pre('validate', function (next) {
   if (this.isNew) {
     this.isOn = false;
     this.nonce = randomstring.generate(dbConfig.randomstringLength);

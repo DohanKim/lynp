@@ -29,17 +29,19 @@ var UserSchema = new Schema({
   }
 });
 
-UserSchema.pre('save', function (next) {
-  if (this.isModified('password') || this.isNew) {
+UserSchema.pre('validate', function (next) {
+  var self = this;
+
+  if (self.isModified('password') || self.isNew) {
     bcrypt.genSalt(10, function (err, salt) {
       if (err) {
         return next(err);
       }
-      bcrypt.hash(this.password, salt, null, function (err, hash) {
+      bcrypt.hash(self.password, salt, null, function (err, hash) {
         if (err) {
           return next(err);
         }
-        this.password = hash;
+        self.password = hash;
         next();
       });
     });

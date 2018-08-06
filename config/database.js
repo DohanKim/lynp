@@ -4,5 +4,5 @@ module.exports = {
   options: {
     useNewUrlParser: true, 
   },
-  randomstringLength: 10,
+  randomstringLength: 20,
 };

@@ -11,56 +11,42 @@ var common = require('./common');
 var fs = require('fs');
 
 router.post('/printer', passport.authenticate('jwt', {session: false}), function (req, res) {
-  var token = common.getToken(req.headers);
-  if (token) {
-    var newPrinter = new Printer({
-      printerId: req.body.printer_id,
-      model: req.body.model,
-      owner: req.user.username,
-      name: req.body.name,
-      location: [req.body.lat, req.body.lng],
-      address: req.body.address,
-      isColorSupported: req.body.isColorSupported,
-    });
+  var newPrinter = new Printer({
+    printerId: req.body.printer_id,
+    model: req.body.model,
+    owner: req.user.username,
+    name: req.body.name,
+    location: [req.body.lat, req.body.lng],
+    address: req.body.address,
+    isColorSupported: req.body.isColorSupported,
+  });
 
-    newPrinter.save(function (err) {
-      if (err) {
-        console.log(err);
-        return res.json({success: false, msg: 'Save printer failed.'});
-      }
-      res.json({success: true, msg: 'Successful created new printer.'});
-    });
-  } else {
-    return res.status(403).send({success: false, msg: 'Unauthorized.'});
-  }
+  newPrinter.save(function (err) {
+    if (err) {
+      console.log(err);
+      return res.json({success: false, msg: 'Save printer failed.'});
+    }
+    //TODO: remove nonce after validation
+    res.json({success: true, msg: 'Successful created new printer.'});
+  });
 });
 
 router.get('/printers', passport.authenticate('jwt', {session: false}), function (req, res) {
-  var token = common.getToken(req.headers);
-  if (token) {
-    Printer.find(function (err, printers) {
-      if (err) return next(err);
-      res.json(printers);
-    });
-  } else {
-    return res.status(403).send({success: false, msg: 'Unauthorized.'});
-  }
+  Printer.find(function (err, printers) {
+    if (err) return next(err);
+    res.json(printers);
+  });
 });
 
 router.post('/print', passport.authenticate('jwt', {session: false}), function (req, res) {
-  var token = common.getToken(req.headers);
-  if (token) {
-    console.log(req.body);
-    console.log("file: ", req.file);
-    printFile(req.body.printer_id, req.file, req.user)
-      .then(() => {
-        res.json({success: true, msg: 'Successfully printed.'});
-      }).catch(() => {
-        res.status(401).send({success: false, msg: 'Print failed'});
-      });
-  } else {
-    return res.status(403).send({success: false, msg: 'Unauthorized.'});
-  }
+  console.log(req.body);
+  console.log("file: ", req.file);
+  printFile(req.body.printer_id, req.file, req.user)
+    .then(() => {
+      res.json({success: true, msg: 'Successfully printed.'});
+    }).catch(() => {
+      res.status(401).send({success: false, msg: 'Print failed'});
+    });
 });
 
 printFile = function (printerId, file, user) {
@@ -103,7 +89,6 @@ printFile = function (printerId, file, user) {
           }
         );
 
-        console.log(file);
         // submit a print job
         var formData = {
           printerid : printerId,
@@ -112,7 +97,6 @@ printFile = function (printerId, file, user) {
           content: fs.createReadStream(file.path),
           contentType: file.mimetype,
         };
-        console.log(formData);
 
         request.post(
           {
