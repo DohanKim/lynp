@@ -27,7 +27,7 @@ router.post('/printer', passport.authenticate('jwt', {session: false}), function
       return res.json({success: false, msg: 'Save printer failed.'});
     }
     //TODO: remove nonce after validation
-    res.json({success: true, msg: 'Successful created new printer.'});
+    res.json({success: true, msg: 'Successfully created new printer.'});
   });
 });
 
@@ -35,6 +35,15 @@ router.get('/printers', passport.authenticate('jwt', {session: false}), function
   Printer.find(function (err, printers) {
     if (err) return next(err);
     res.json(printers);
+  });
+});
+
+router.put('/printer', passport.authenticate('jwt', {session: false}), function (req, res) {
+  Printer.findByIdAndUpdate(req.body._id, {$set: req.body}, function (err, printer) {
+    if (err) {
+      return res.json({success: false, msg: 'Updating printer failed.'})
+    }
+    res.json({success: true, msg: 'Successfully updated the printer.'});
   });
 });
 
