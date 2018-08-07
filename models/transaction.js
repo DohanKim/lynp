@@ -24,7 +24,6 @@ var TransactionSchema = new Schema({
   },
   isColorPrinting: {
     type: Boolean,
-    required: true,
   },
 });
 

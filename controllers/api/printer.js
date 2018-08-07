@@ -7,6 +7,7 @@ var {google} = require('googleapis');
 var private_key = require('../../config/privatekey.json');
 var request = require('request');
 var Printer = require('../../models/printer');
+var Transaction = require('../../models/transaction');
 var common = require('./common');
 var fs = require('fs');
 
@@ -48,11 +49,31 @@ router.put('/printer', passport.authenticate('jwt', {session: false}), function 
 });
 
 router.post('/print', passport.authenticate('jwt', {session: false}), function (req, res) {
-  console.log(req.body);
-  console.log("file: ", req.file);
   printFile(req.body.printer_id, req.file, req.user)
-    .then(() => {
-      res.json({success: true, msg: 'Successfully printed.'});
+    .then((data) => {
+      console.log(req.body.printerId);
+      var printer = Printer.findOne({printerId: req.body.printer_id}, function (err, printer) {
+        if (err) {
+          console.log(err);
+          return res.status(401).send({success: false, msg: 'Can not find the printer'});
+        }
+
+        var newTransaction = new Transaction({
+          consumer: req.user.username,
+          owner: printer.owner,
+          filename: req.file.originalname,
+          amount: data.job.numberOfPages,
+          price: printer.cost * data.job.numberOfPages,
+        });
+
+        newTransaction.save(function (err) {
+          if (err) {
+            console.log(err);
+            res.status(401).send({success: false, msg: 'Transaction creation failed.'});
+          }
+          res.json({success: true, msg: 'Successfully printed.'});
+        });
+      });
     }).catch(() => {
       res.status(401).send({success: false, msg: 'Print failed'});
     });
@@ -117,13 +138,11 @@ printFile = function (printerId, file, user) {
           },
           function optionalCallback(err, httpResponse, body) {
             var jbody = JSON.parse(body);
-            console.log(jbody);
             if (err || jbody.success == false) {
               console.error(err);
               reject(Error());
             } else {
-              console.log(body);
-              resolve();
+              resolve(jbody);
             }
           }
         );
