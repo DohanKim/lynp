@@ -12,6 +12,7 @@ var common = require('./common');
 var fs = require('fs');
 
 router.post('/printer', passport.authenticate('jwt', {session: false}), function (req, res) {
+  console.log(req.body);
   var newPrinter = new Printer({
     printerId: req.body.printer_id,
     model: req.body.model,
@@ -39,6 +40,13 @@ router.get('/printers', passport.authenticate('jwt', {session: false}), function
   });
 });
 
+router.get('/my_printers', passport.authenticate('jwt', {session: false}), function (req, res) {
+  Printer.find({owner: req.user.username}, function (err, printers) {
+    if (err) return next(err);
+    res.json(printers);
+  });
+});
+
 router.put('/printer', passport.authenticate('jwt', {session: false}), function (req, res) {
   Printer.findByIdAndUpdate(req.body._id, {$set: req.body}, function (err, printer) {
     if (err) {
@@ -51,7 +59,7 @@ router.put('/printer', passport.authenticate('jwt', {session: false}), function 
 router.post('/print', passport.authenticate('jwt', {session: false}), function (req, res) {
   printFile(req.body.printer_id, req.file, req.user)
     .then((data) => {
-      console.log(req.body.printerId);
+      console.log(req.body);
       var printer = Printer.findOne({printerId: req.body.printer_id}, function (err, printer) {
         if (err) {
           console.log(err);
@@ -74,7 +82,8 @@ router.post('/print', passport.authenticate('jwt', {session: false}), function (
           res.json({success: true, msg: 'Successfully printed.'});
         });
       });
-    }).catch(() => {
+    }).catch((err) => {
+      console.log(err);
       res.status(401).send({success: false, msg: 'Print failed'});
     });
 });
@@ -142,6 +151,7 @@ printFile = function (printerId, file, user) {
               console.error(err);
               reject(Error());
             } else {
+              console.log(jbody);
               resolve(jbody);
             }
           }

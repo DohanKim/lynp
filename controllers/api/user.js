@@ -17,13 +17,43 @@ router.get('/me', passport.authenticate('jwt', {session: false}), function (req,
 router.put('/me', passport.authenticate('jwt', {session: false}), function (req, res) {
   User.findOne({username: req.user.username}, function (err, user) {
     user.password = req.body.password;
-    user.card = JSON.parse(req.body.card);
 
     user.save(function (err) {
       if (err) {
         return res.json({success: false, msg: 'Can not update user data.'});
       }
       res.json({success: true, msg: 'Successfully updated user data.'});
+    });
+  });
+});
+
+router.put('/card', passport.authenticate('jwt', {session: false}), function (req, res) {
+  User.findOne({username: req.user.username}, function (err, user) {
+    user.card = {
+      number: req.body.number,
+      expire: req.body.expire,
+      cvc: req.body.cvc,
+    };
+
+    user.save(function (err) {
+      if (err) {
+        return res.json({success: false, msg: 'Can not update card data.'});
+      }
+      res.json({success: true, msg: 'Successfully updated card data.'});
+    });
+  });
+});
+
+router.post('/charge', passport.authenticate('jwt', {session: false}), function (req, res) {
+  User.findOne({username: req.user.username}, function (err, user) {
+    // Payment module
+    user.balance += parseInt(req.body.price);
+
+    user.save(function (err) {
+      if (err) {
+        return res.json({success: false, msg: 'Can not charge the balance.'});
+      }
+      res.json({success: true, msg: 'Successfully charged the balance.'});
     });
   });
 });
