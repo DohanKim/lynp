@@ -97,8 +97,9 @@ router.post('/print', passport.authenticate('jwt', {session: false}), function (
         });
       });
     }).catch((err) => {
+      console.log("ERROR=");
       console.log(err);
-      res.status(401).send({success: false, msg: 'Print failed'});
+      res.status(401).send({success: false, msg: err.message});
     });
 });
 
@@ -161,9 +162,12 @@ printFile = function (printerId, file, user) {
           },
           function optionalCallback(err, httpResponse, body) {
             var jbody = JSON.parse(body);
-            if (err || jbody.success == false) {
-              console.error(err);
-              reject(Error());
+            if (err) {
+              console.log(err);
+              reject(err);
+            } else if (jbody.success == false) {
+              console.log(jbody);
+              reject(jbody);
             } else {
               console.log(jbody);
               resolve(jbody);
