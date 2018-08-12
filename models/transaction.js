@@ -18,6 +18,10 @@ var TransactionSchema = new Schema({
     type: Number,
     required: true,
   },
+  printerId: {
+    type: String,
+    required: true,
+  },
   price: {
     type: Number,
     required: true,

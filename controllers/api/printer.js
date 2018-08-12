@@ -56,6 +56,19 @@ router.put('/printer', passport.authenticate('jwt', {session: false}), function 
   });
 });
 
+router.post('/printers/:id/toggleOnOff', passport.authenticate('jwt', {session: false}), function (req, res) {
+  Printer.findById(req.params.id, function (err, printer) {
+    printer.isOn = !printer.isOn;
+    printer.save(function (err) {
+      if (err) {
+        console.log(err);
+        return res.json({success: false, msg: 'Toggle status failed.'})
+      }
+      res.json({success: true, msg: 'Successfully toggled the status.'});
+    });
+  }); 
+});
+
 router.post('/print', passport.authenticate('jwt', {session: false}), function (req, res) {
   printFile(req.body.printer_id, req.file, req.user)
     .then((data) => {
@@ -70,6 +83,7 @@ router.post('/print', passport.authenticate('jwt', {session: false}), function (
           consumer: req.user.username,
           owner: printer.owner,
           filename: req.file.originalname,
+          printerId: req.body.printer_id,
           amount: data.job.numberOfPages,
           price: printer.cost * data.job.numberOfPages,
         });
