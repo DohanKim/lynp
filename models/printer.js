@@ -31,7 +31,7 @@ var PrinterSchema = new Schema({
   },
   cost: {
     type: Number,
-    default: 50,
+    default: 0.50,
   },
   isColorSupported: {
     type: Boolean,
